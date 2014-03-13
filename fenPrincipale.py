@@ -5,6 +5,38 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import DMX
 import numpy as np
+import os
+
+class dialogueConfigTheme(QDialog):
+    def __init__(self):
+        QDialog.__init__(self)
+        self.setWindowTitle("Configuration de l'apparence")
+
+        labelConfig = QLabel()
+        labelConfig.setText("<b>Configuration de l'apparence de l'interface</b><hr>")
+        self.checkPleinEcran = QCheckBox(self.trUtf8("Mode plein écran"))
+        self.checkPleinEcran.setCheckState(2)
+        self.listeThemes = QComboBox()
+        labelChoixTheme = QLabel()
+        labelChoixTheme.setText(self.trUtf8("Choix du thème"))
+        self.listeThemes.addItem(self.trUtf8("Moderne"))
+        self.listeThemes.addItem(self.trUtf8("Classique"))
+        boutonBox = QDialogButtonBox()
+        boutonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+
+        layout = QGridLayout()
+        layout.addWidget(labelConfig,0,0,1,3)
+        layout.addWidget(self.checkPleinEcran,1,0)
+        layout.addWidget(labelChoixTheme,1,1)
+        layout.addWidget(self.listeThemes,1,2)
+        layout.addWidget(boutonBox,2,1,1,2)
+
+        self.setLayout(layout)
+
+        self.connect(boutonBox, SIGNAL("accepted()"),
+                     self.accept)
+        self.connect(boutonBox, SIGNAL("rejected()"),
+                     self.reject)
 
 class fenPrincipale(QMainWindow):
     def __init__(self):
@@ -39,15 +71,19 @@ class fenPrincipale(QMainWindow):
         actionRecevoir.setStatusTip(self.trUtf8("Lit l'état du bus"))
         actionRecevoir.setShortcut(QKeySequence("Ctrl+B"))
         menuConfig = self.menuBar().addMenu("&Configuration")
-        actionConfig = menuConfig.addAction("&Editer la configuration")
+        actionConfigDmx = menuConfig.addAction("Configurer le bus &DMX")
+        actionConfigDmx.setStatusTip("Configurer le bus DMX (adresse, longueur de trame,...)")
+        actionConfigAff = menuConfig.addAction("Configurer l'&apparence")
+        actionConfigAff.setStatusTip(self.trUtf8("Configurer l'apparence de l'application (langue, thème, plein écran,...)"))
         actionVoirFic = menuConfig.addAction("&Voir le fichier de configuration")
+        actionVoirFic.setStatusTip("Voir le fichier brut de configuration")
 
         barreTrame = self.addToolBar("Trame")
         barreTrame.addAction(actionNTrame)
         barreTrame.addAction(actionSauver)
         barreTrame.addAction(actionEnvoyer)
         barreTrame.addSeparator()
-        barreTrame.addAction(actionConfig)
+        barreTrame.addAction(actionConfigDmx)
         barreTrame.addSeparator()
         barreTrame.addAction(actionVerrouiller)
         barreTrame.addAction(actionEteindre)
@@ -167,14 +203,9 @@ class fenPrincipale(QMainWindow):
         self.TF11.new()
         self.TF12=DMX.Trame("F12", "F12")
         self.TF12.new()
-        print self.TF1.content
         self.trameCourante=self.TF1
         self.labelCourant = "label"+self.trameCourante.selecteur
         self.affichageContenuTrame()
-        
-        print self.trameCourante.selecteur
-        print"'"
-        print self.trameCourante.content
 
         self.setWindowTitle("Rasp'Mx - " + self.trameCourante.selecteur + " - " + self.trameCourante.name)
         
@@ -183,6 +214,7 @@ class fenPrincipale(QMainWindow):
         self.connect(actionSauver, SIGNAL("triggered()"), self.enregistrerTrame)
         self.connect(actionNFF, SIGNAL("triggered()"), self.chargerTrame)
         self.connect(actionNTrame, SIGNAL("triggered()"), self.nouvelleTrame)
+        self.connect(actionConfigAff, SIGNAL("triggered()"), self.configAff)
         self.connect(scF1, SIGNAL("activated()"), self.F1)
         self.connect(scF2, SIGNAL("activated()"), self.F2)
         self.connect(scF3, SIGNAL("activated()"), self.F3)
@@ -360,3 +392,40 @@ class fenPrincipale(QMainWindow):
         print entree.toStdString()
         print "OK"
         return 1
+
+    def configAff(self):
+        courant = open('courant.rmc', 'r')
+        contenu = courant.readlines()
+        if (str(contenu[0])=='~Fichier de configuration RaspMx\n'):
+            courant.close()
+            dialogue = dialogueConfigTheme()
+            res = dialogue.exec_()
+            if res:
+                print "Accepted"
+                os.remove('courant.rmc')
+                courant = open('courant.rmc', 'w')
+                if (dialogue.checkPleinEcran.checkState() == 2):
+                    contenu[2] = "pleinEcran=1\n"
+                    print "Checked"
+                else:
+                    contenu[2] = "pleinEcran=0\n"
+                    print "Unchecked"
+                contenu[3] = "theme="+dialogue.listeThemes.currentText()+"\n"
+                for i in range (0,len(contenu)):
+                    courant.write(contenu[i])
+                #MESSAGEBOX
+                messageConfirmation = QMessageBox(QMessageBox.Icon(),
+                                        self.trUtf8("Sauvegarde effectuée"),
+                                        self.trUtf8("La configuration a été enregistrée, elle prendra effet au prochain démarrage"),
+                                        QMessageBox.Ok)
+                res2 = messageConfirmation.exec_()
+                print str(dialogue.listeThemes.currentText())
+                return 1
+            else:
+                print "Rejected"
+                return 0
+        else:
+            print'NOK'
+            return 0
+
+        courant.close()
