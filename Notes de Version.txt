@@ -1,5 +1,5 @@
 #############################################################################################################################
-VERSION 20140306-1 DU 6 MARS 2014
+VERSION 20140306-1 DU 7 MARS 2014
 #############################################################################################################################
 
 Résumé des modifications
@@ -7,9 +7,10 @@ ________________________________________________________________________________
 _____________________________________________________________________________________________________________________________
   Type	|      Fonction		|                                  Description
 _____________________________________________________________________________________________________________________________
-Nouveau.|main			|-Ajout d'un écran splash au démarrage de l'application
+Nouveau |__init__()		|-Ajout d'un menu pour la configuration du programme et pour la visualisation du fichier de 		|			|	configuration
 _____________________________________________________________________________________________________________________________
-Amelior.|__init__()		|-Amélioration de l'ergonomie :
-	|			|	*Suppression des layouts 'Renommer' et 'Lire' puisque devenus inutiles
-	|			|	*Layout 'Maj' est horizontal pour dégager de la place pour l'affichage de la trame
+Amélior.|__init__()		|-Amélioration de l'ergonomie :
+	|			|	*Ajout d'un ascensseur pour la zone d'affichage de la trame
+_____________________________________________________________________________________________________________________________
+Amélior.|main			|-Fenêtre en plein écran
 _____________________________________________________________________________________________________________________________

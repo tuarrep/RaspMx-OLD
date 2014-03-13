@@ -14,6 +14,7 @@ def main(args):
     splash.setMask(splashImage.mask())
     splash.show()
     f=fenPrincipale()
+    f.showFullScreen()
     f.show()
     splash.finish(f)
     r=a.exec_()
