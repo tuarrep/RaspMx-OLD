@@ -25,20 +25,21 @@ def decimal(a):
 class Trame:
     def __init__(self,nom, selecteur, h=512):
         self.name = nom
-        self.height = h
+        self.height = h+1
         self.lenght = self.height*11
         self.savepath = os.getcwd() + "\\Preps\\"
         self.content = []
         self.selecteur = selecteur
     
     def new(self):
-       self.content = np.zeros((self.height+1,11),int)
-       for i in range(0,513):
+       self.content = np.zeros((self.height,11),int)
+       for i in range(0,self.height):
            self.content[(i,0)] = 1                      
        return self.content
 
     def nff(self, fic):
-        return np.load(self.savepath + fic + '.npy')
+        print np.load(fic)
+        return np.load(fic)
     
     def save(self, nom):
         self.name=nom
@@ -49,7 +50,7 @@ class Trame:
         return np.load(self.savepath + self.name + '.npy')
 
     def modif_canal(self, Chn, Val):
-        if (Chn in range (0,513)):
+        if (Chn in range (0,self.height)):
             Set = binaire(Val)
             for j in range (0,8):
                 self.content[Chn,j+1] = Set[j]

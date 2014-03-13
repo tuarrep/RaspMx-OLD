@@ -133,7 +133,7 @@ class fenPrincipale(QMainWindow):
         sousFenetre2 = zoneCentrale.addSubWindow(ongletPupitre2)
         sousFenetre2.setWindowTitle("Mode pupitre")
 
-        zoneCentrale.setViewMode(QMdiArea.TabbedView)
+        #zoneCentrale.setViewMode(QMdiArea.TabbedView)
 
         self.setCentralWidget(zoneCentrale)
 
@@ -190,6 +190,8 @@ class fenPrincipale(QMainWindow):
         self.connect(boutonMaj, SIGNAL("clicked()"), self.maj)
         self.connect(boutonLire, SIGNAL("clicked()"), self.lire)
         self.connect(actionSauver, SIGNAL("triggered()"), self.enregistrerTrame)
+        self.connect(actionNFF, SIGNAL("triggered()"), self.chargerTrame)
+        self.connect(actionNTrame, SIGNAL("triggered()"), self.nouvelleTrame)
         self.connect(boutonRenommer, SIGNAL("clicked()"), self.renommerTrame)
         self.connect(scF1, SIGNAL("activated()"), self.F1)
         self.connect(scF2, SIGNAL("activated()"), self.F2)
@@ -237,7 +239,7 @@ class fenPrincipale(QMainWindow):
             print "La maj est possible"
             self.trameCourante.modif_canal(self.qsToString(self.champMajCanal.text()),
                                self.qsToString(self.champMajValeur.text()))
-            self.barreEtat.showMessage(self.trUtf8("Mise à jour effectuée"))
+            self.barreEtat.showMessage(self.trUtf8("Mise à jour effectuée avec succès"),5000)
             print "OK"
             print self.TF1.content
             self.majOk=0
@@ -252,64 +254,36 @@ class fenPrincipale(QMainWindow):
         
     def enregistrerTrame(self):
         print "Enregistrement de la trame"
-        messageConfirmation = QMessageBox(QMessageBox.Icon(),
-                                          "Sauvegarde de la trame",
-                                          self.trUtf8("La trame éxistante sera supprimée"),
-                                          QMessageBox.Save|QMessageBox.Discard)
-        res = messageConfirmation.exec_()
-        print res
-        if (res != 2048):
-            self.barreEtat.showMessage("SAUVEGARDE NON EFFECTUEE !")
-            return 0
         self.trameCourante.save(self.trameCourante.name)
-        self.barreEtat.showMessage(self.trUtf8("Trame sauvegardée avec succès"))
+        self.barreEtat.showMessage(self.trUtf8("Trame sauvegardée avec succès"),5000)
         print "OK"
         
     def renommerTrame(self):
         print"Renommage de la trame"
         self.trameCourante.name=str(self.champRenommer.text())
         self.setWindowTitle("Rasp'Mx - " + self.trameCourante.selecteur + " - " + self.trameCourante.name)
-        self.barreEtat.showMessage(self.trUtf8("Trame renommée"))
+        self.barreEtat.showMessage(self.trUtf8("Trame renommée en ")+self.trameCourante.name,5000)
         print self.trameCourante.name
 
     def changeTrameCourante(self, nouvelleTrame, labelSelecteur):
+        self.labelF1.setStyleSheet("background-color:transparent")
+        self.labelF2.setStyleSheet("background-color:transparent")
+        self.labelF3.setStyleSheet("background-color:transparent")
+        self.labelF4.setStyleSheet("background-color:transparent")
+        self.labelF5.setStyleSheet("background-color:transparent")
+        self.labelF6.setStyleSheet("background-color:transparent")
+        self.labelF7.setStyleSheet("background-color:transparent")
+        self.labelF8.setStyleSheet("background-color:transparent")
+        self.labelF9.setStyleSheet("background-color:transparent")
+        self.labelF10.setStyleSheet("background-color:transparent")
+        self.labelF11.setStyleSheet("background-color:transparent")
+        self.labelF12.setStyleSheet("background-color:transparent")
         labelSelecteur.setStyleSheet("background-color:red")
-        ancienneTrame = self.trameCourante.selecteur
-        print ancienneTrame
-        if (ancienneTrame == nouvelleTrame.selecteur):
-            return 0
-        if (ancienneTrame == "F1"):
-            self.labelF1.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F2"):
-            self.labelF2.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F3"):
-            self.labelF3.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F4"):
-            self.labelF4.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F5"):
-            self.labelF5.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F6"):
-            self.labelF6.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F7"):
-            self.labelF7.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F8"):
-            self.labelF8.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F9"):
-            self.labelF9.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F10"):
-            self.labelF10.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F11"):
-            self.labelF11.setStyleSheet("background-color:transparent")
-        elif (ancienneTrame == "F12"):
-            self.labelF12.setStyleSheet("background-color:transparent")
-        else:
-            print "ERREUR ancienne trame"
-            pass
         self.trameCourante = nouvelleTrame
         self.affichageContenuTrame()
         self.setWindowTitle("Rasp'Mx - " + self.trameCourante.selecteur + " - " + self.trameCourante.name)
+        self.barreEtat.showMessage(self.trUtf8("Sélecteur de trame positionné sur ")+self.trameCourante.selecteur,5000)
         
-
     def F1(self):
         print "F1!"
         self.changeTrameCourante(self.TF1, self.labelF1)
@@ -371,4 +345,41 @@ class fenPrincipale(QMainWindow):
                 affichage += "</tr><tr>"
                 j+=1
         affichage+="</table>"
-        self.labelContenuTrame.setText(affichage)    
+        self.labelContenuTrame.setText(affichage)
+        self.barreEtat.showMessage(self.trUtf8("L'affichage de la trame à été actualisé"),5000)
+
+    def chargerTrame(self):
+        messageConfirmation = QMessageBox(QMessageBox.Icon(),
+                                          "Chrager une trame depuis un fichier",
+                                          self.trUtf8("ATTENTION : La trame courante va être écrasée."
+                                                      +"<br />Voulez-vous continuer ?"),
+                                          QMessageBox.Yes|QMessageBox.No)
+        res = messageConfirmation.exec_()
+        print res
+        if (res != 16384):
+            self.barreEtat.showMessage(self.trUtf8("Trame non chargée"),5000)
+            return 0
+        self.barreEtat.showMessage(self.trUtf8("Veuillez sélectionner un fichier"))
+        fichier = QFileDialog.getOpenFileName(self,"Charger une trame depuis un fichier",self.trameCourante.savepath,"Ficher Trame (*.npy)")
+        if fichier:
+            print fichier
+            self.trameCourante.content = self.trameCourante.nff(str(fichier))
+            self.trameCourante.name = str(fichier)
+            self.setWindowTitle("Rasp'Mx - " + self.trameCourante.selecteur + " - " + self.trameCourante.name)
+            self.affichageContenuTrame()
+            return 1
+        else:
+            print "NUL"
+            self.barreEtat.showMessage(self.trUtf8("Veuillez sélectionner un fichier valide"))
+            return 0
+
+    def nouvelleTrame(self):
+        pass
+        #entree = QInputDialog.getText(self,
+                                          #"Nouvelle trame",
+                                          #"Veuillez entrer le nom pour la nouvelle trame",
+                                          #QLineEdit.Normal)
+        #nom = str(entree.toStdString()[0])
+        #print entree.toStdString()
+        #print "OK"
+        #return 1
