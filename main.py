@@ -8,7 +8,7 @@ import sys, os
 
 def main(args):
     a=QApplication(args)
-    QApplication.setStyle(QStyleFactory.create("Plastique"))
+    QApplication.setStyle(QStyleFactory.create("Cleanlooks"))
     f=fenPrincipale()
     f.show()
     r=a.exec_()
