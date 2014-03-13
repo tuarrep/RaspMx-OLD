@@ -13,7 +13,7 @@ class dialogueConfigTheme(QDialog):
         self.setWindowTitle("Configuration de l'apparence")
 
         labelConfig = QLabel()
-        labelConfig.setText("<b>Configuration de l'apparence de l'interface</b><hr>")
+        labelConfig.setText("<b>Configuration de l'apparence de l'interface</b><hr />")
         self.checkPleinEcran = QCheckBox(self.trUtf8("Mode plein écran"))
         self.checkPleinEcran.setCheckState(2)
         self.listeThemes = QComboBox()
@@ -37,6 +37,37 @@ class dialogueConfigTheme(QDialog):
                      self.accept)
         self.connect(boutonBox, SIGNAL("rejected()"),
                      self.reject)
+class dialogueConfigMdp(QDialog):
+    def __init__(self):
+        QDialog.__init__(self)
+        self.setWindowTitle("Configurer le mot de passe de verrouillage")
+
+        labelMdp = QLabel()
+        labelMdp.setText("<b>Configuration du mot de passe de verrouillage du pupitre</b><hr />")
+        self.champAncien = QLineEdit()
+        self.champAncien.setPlaceholderText("Ancien mot de passe")
+        self.champNouveau = QLineEdit()
+        self.champNouveau.setPlaceholderText("Nouveau mot de passe")
+        self.champConfirmation = QLineEdit()
+        self.champConfirmation.setPlaceholderText("Confirmation du nouveau mot de passe")
+        boutonValider = QPushButton("Valider")
+
+        layout = QGridLayout()
+        layout.addWidget(labelMdp,0,0,1,2)
+        layout.addWidget(self.champAncien,1,0,2,1)
+        layout.addWidget(self.champNouveau,1,1,1,1)
+        layout.addWidget(self.champConfirmation,2,1,1,1)
+        layout.addWidget(boutonValider,3,0,1,2)
+
+        self.setLayout(layout)
+
+        self.connect(boutonValider, SIGNAL("clicked()"), self.verif)
+
+    def verif(self):
+        if (self.champNouveau.text() == self.champConfirmation.text()):
+            self.accept()
+        else:
+            self.champConfirmation.setFocus()
 
 class fenPrincipale(QMainWindow):
     def __init__(self):
@@ -75,6 +106,8 @@ class fenPrincipale(QMainWindow):
         actionConfigDmx.setStatusTip("Configurer le bus DMX (adresse, longueur de trame,...)")
         actionConfigAff = menuConfig.addAction("Configurer l'&apparence")
         actionConfigAff.setStatusTip(self.trUtf8("Configurer l'apparence de l'application (langue, thème, plein écran,...)"))
+        actionConfigMdp = menuConfig.addAction("Mot de passe de verrouillage")
+        actionConfigMdp.setStatusTip("Configurer le mot de passe pour le verrouillage du pupitre")
         actionVoirFic = menuConfig.addAction("&Voir le fichier de configuration")
         actionVoirFic.setStatusTip("Voir le fichier brut de configuration")
 
@@ -215,6 +248,8 @@ class fenPrincipale(QMainWindow):
         self.connect(actionNFF, SIGNAL("triggered()"), self.chargerTrame)
         self.connect(actionNTrame, SIGNAL("triggered()"), self.nouvelleTrame)
         self.connect(actionConfigAff, SIGNAL("triggered()"), self.configAff)
+        self.connect(actionConfigMdp, SIGNAL("triggered()"), self.configMdp)
+        self.connect(actionVerrouiller, SIGNAL("triggered()"), self.verrouiller)
         self.connect(scF1, SIGNAL("activated()"), self.F1)
         self.connect(scF2, SIGNAL("activated()"), self.F2)
         self.connect(scF3, SIGNAL("activated()"), self.F3)
@@ -429,3 +464,55 @@ class fenPrincipale(QMainWindow):
             return 0
 
         courant.close()
+
+    def configMdp(self):
+        courant = open('courant.rmc', 'r')
+        contenu = courant.readlines()
+        if (str(contenu[0])=='~Fichier de configuration RaspMx\n'):
+            courant.close()
+            dialogue = dialogueConfigMdp()
+            res = dialogue.exec_()
+            if res :
+                os.remove('courant.rmc')
+                courant = open('courant.rmc', 'w')
+                if (dialogue.champAncien.text()+"\n" == str(contenu[4]).split("=")[1] and dialogue.champNouveau.text() == dialogue.champConfirmation.text()):
+                    contenu[4]="mdp="+dialogue.champNouveau.text()+"\n"
+                    for i in range (0,len(contenu)):
+                        courant.write(contenu[i])
+                else:
+                    print"PB AMDP"
+                courant.close()
+
+    def verrouiller(self):
+        fen = QDialog(self,Qt.WindowStaysOnTopHint)
+        
+        temp = QPushButton(">>>")
+        labelTitre = QLabel()
+        labelTitre.setText(self.trUtf8("<p align=\"center\"><b>Le pupitre est verrouillé. Veuillez entrer le mot de passe</b></p>"))
+        champMdp = QLineEdit()
+        boutonValider = QPushButton("Valider")
+
+        layoutForm = QHBoxLayout()
+        layoutForm.addWidget(champMdp)
+        layoutForm.addWidget(boutonValider)
+
+        layout = QGridLayout()
+        layout.addWidget(temp,2,0)
+        layout.addLayout(layoutForm,1,0)
+        layout.addWidget(labelTitre,0,0,)
+
+        fen.setLayout(layout)
+
+        fen.connect(temp, SIGNAL("clicked()"), fen.accept)
+
+        fen.showFullScreen()
+        res = fen.show()                                                #NE RENVOI RIEN A RES !
+
+        if res:                     
+            print "OK"
+            courant = open('courant.rmc','r')
+            contenu = courant.readlines()
+            print champMdp.text()
+            print str(contenu[4]).split("=")[1]
+            if (champMdp.text()+'\n'==str(contenu[4]).split("=")[1]):
+                print "mdpOk"
