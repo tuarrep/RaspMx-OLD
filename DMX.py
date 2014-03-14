@@ -1,53 +1,51 @@
-import numpy as np
+import numpy
 import os
 
 def binaire (n):                
-    sortie = [0,0,0,0,0,0,0,0]
+    sortie = []
     q = -1
-    r = 0
-    i = 0    
+    r = 0    
     for i in range (0,8):
         print i
-        q = n / 2
-        r = n % 2
-        sortie[i] =  int(r)
-        n = q   
+        quotient = n / 2
+        reste = n % 2
+        sortie.append(int(reste))
+        n = quotient   
     return sortie
 
-def decimal(a):
+def decimal(tableau):
     sortie = 0
-    for i in range(0,len(a)):
-        sortie = sortie + a[i]*2**i
+    for i in range(0,len(tableau)):
+        sortie = sortie + tableau[i]*2**i
     return str(sortie)
 
 
 
 class Trame:
-    def __init__(self,nom, selecteur, h=512):
+    def __init__(self,nom="Trame_vide", selecteur="F1", h=512):
         self.name = nom
         self.height = h+1
         self.lenght = self.height*11
         self.savepath = os.getcwd() + "\\Preps\\"
-        self.content = []
         self.selecteur = selecteur
+        self.content = numpy.zeros((self.height,11),int)
+        for i in range(0,self.height):
+            self.content[(i,0)] = 1
     
     def new(self):
-       self.content = np.zeros((self.height,11),int)
-       for i in range(0,self.height):
-           self.content[(i,0)] = 1                      
-       return self.content
+        pass
 
-    def nff(self, fic):
-        print np.load(fic)
-        return np.load(fic)
+    def loadFromFile(self, fichier):
+        print numpy.load(fichier)
+        return numpy.load(fichier)
     
     def save(self, nom):
         self.name=nom
-        np.save(self.savepath + self.name,self.content)
+        numpy.save(self.savepath + self.name,self.content)
         return True
 
     def relire(self):
-        return np.load(self.savepath + self.name + '.npy')
+        return numpy.load(self.savepath + self.name + '.numpyy')
 
     def modif_canal(self, Chn, Val):
         if (Chn in range (0,self.height)):
@@ -62,7 +60,7 @@ class Trame:
         return decimal(self.content[Chn,1:9])
 
     def make(self):
-        self.go = np.concatenate((np.loadtxt('break.dmx'),np.loadtxt('MAB.dmx'),np.reshape(self.content,self.lenght)))
+        self.go = numpy.concatenate((numpy.loadtxt('break.dmx'),numpy.loadtxt('MAB.dmx'),numpy.reshape(self.content,self.lenght)))
         return self.go
 
 
